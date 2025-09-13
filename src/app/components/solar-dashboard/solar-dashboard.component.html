@@ -1,0 +1,314 @@
+<div class="solar-dashboard">
+  <!-- Header Section -->
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h1 class="dashboard-title">
+        <span class="solar-icon">☀</span>
+        Solar Power Prediction Platform
+      </h1>
+      <p class="dashboard-subtitle">AI-powered solar energy generation forecasting and optimization</p>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <div class="dashboard-content">
+    <!-- Input Form Section -->
+    <section class="input-section">
+      <div class="section-header">
+        <h2>System Configuration</h2>
+        <p>Enter your location and solar panel specifications</p>
+      </div>
+      
+      <form [formGroup]="predictionForm" (ngSubmit)="onSubmit()" class="prediction-form">
+        <!-- Location Input Group -->
+        <div class="form-row">
+          <div class="form-group location-group">
+            <label for="location">Location</label>
+            <div class="location-input-wrapper">
+              <input
+                id="location"
+                type="text"
+                formControlName="location"
+                placeholder="e.g., Mumbai, India"
+                class="form-input"
+                [class.error]="isFormFieldInvalid('location')"
+              />
+              <button
+                type="button"
+                class="location-btn"
+                (click)="useCurrentLocation()"
+                title="Use current location"
+              >
+                📍
+              </button>
+            </div>
+            <div class="error-message" *ngIf="getFormFieldError('location')">
+              {{ getFormFieldError('location') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Coordinates Row -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="latitude">Latitude</label>
+            <input
+              id="latitude"
+              type="number"
+              formControlName="latitude"
+              step="0.0001"
+              placeholder="e.g., 19.0760"
+              class="form-input"
+              [class.error]="isFormFieldInvalid('latitude')"
+            />
+            <div class="error-message" *ngIf="getFormFieldError('latitude')">
+              {{ getFormFieldError('latitude') }}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="longitude">Longitude</label>
+            <input
+              id="longitude"
+              type="number"
+              formControlName="longitude"
+              step="0.0001"
+              placeholder="e.g., 72.8777"
+              class="form-input"
+              [class.error]="isFormFieldInvalid('longitude')"
+            />
+            <div class="error-message" *ngIf="getFormFieldError('longitude')">
+              {{ getFormFieldError('longitude') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Environmental Parameters -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="irradiance">Solar Irradiance (W/m²)</label>
+            <input
+              id="irradiance"
+              type="number"
+              formControlName="shortwave_radiation_backwards_sfc"
+              min="0"
+              max="1400"
+              placeholder="800"
+              class="form-input"
+              [class.error]="isFormFieldInvalid('shortwave_radiation_backwards_sfc')"
+            />
+            <div class="error-message" *ngIf="getFormFieldError('shortwave_radiation_backwards_sfc')">
+              {{ getFormFieldError('shortwave_radiation_backwards_sfc') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Orientation Parameters -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="azimuth">Azimuth Angle (°)</label>
+            <input
+              id="azimuth"
+              type="number"
+              formControlName="azimuth"
+              min="0"
+              max="360"
+              placeholder="180"
+              class="form-input"
+              [class.error]="isFormFieldInvalid('azimuth')"
+            />
+            <div class="help-text">0° = North, 90° = East, 180° = South, 270° = West</div>
+            <div class="error-message" *ngIf="getFormFieldError('azimuth')">
+              {{ getFormFieldError('azimuth') }}
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="zenith">Zenith Angle (°)</label>
+            <input
+              id="zenith"
+              type="number"
+              formControlName="zenith"
+              min="0"
+              max="90"
+              placeholder="45"
+              class="form-input"
+              [class.error]="isFormFieldInvalid('zenith')"
+            />
+            <div class="help-text">0° = pointing straight up, 90° = horizontal</div>
+            <div class="error-message" *ngIf="getFormFieldError('zenith')">
+              {{ getFormFieldError('zenith') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="incidence">Angle of Incidence (°)</label>
+            <input
+              id="incidence"
+              type="number"
+              formControlName="angle_of_incidence"
+              min="0"
+              max="90"
+              placeholder="30"
+              class="form-input"
+              [class.error]="isFormFieldInvalid('angle_of_incidence')"
+            />
+            <div class="help-text">Angle between sun rays and panel surface</div>
+            <div class="error-message" *ngIf="getFormFieldError('angle_of_incidence')">
+              {{ getFormFieldError('angle_of_incidence') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="dashboardData.loading"
+          >
+            <span *ngIf="dashboardData.loading" class="loading-spinner"></span>
+            {{ dashboardData.loading ? 'Predicting...' : 'Generate Prediction' }}
+          </button>
+          
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="resetForm()"
+          >
+            Reset Form
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Error Display -->
+    <div class="error-alert" *ngIf="dashboardData.error">
+      <div class="error-content">
+        <span class="error-icon">⚠</span>
+        <span class="error-text">{{ dashboardData.error }}</span>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <section class="results-section" *ngIf="dashboardData.current_prediction">
+      <!-- Prediction Results -->
+      <div class="results-grid">
+        <div class="result-card prediction-card">
+          <div class="card-header">
+            <h3>Current Prediction</h3>
+            <span class="card-icon">⚡</span>
+          </div>
+          <div class="card-content">
+            <div class="prediction-value">
+              {{ dashboardData.current_prediction.predicted_generated_kw.toFixed(2) }}
+              <span class="unit">kW</span>
+            </div>
+            <p class="prediction-description">{{ getPredictionSummary() }}</p>
+          </div>
+        </div>
+
+        <!-- Location Info -->
+        <div class="result-card location-card">
+          <div class="card-header">
+            <h3>Location Details</h3>
+            <span class="card-icon">📍</span>
+          </div>
+          <div class="card-content">
+            <div class="location-info">
+              <div class="coordinate">
+                <label>Latitude:</label>
+                <span>{{ dashboardData.current_prediction.latitude.toFixed(4) }}°</span>
+              </div>
+              <div class="coordinate">
+                <label>Longitude:</label>
+                <span>{{ dashboardData.current_prediction.longitude.toFixed(4) }}°</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Optimal Configuration -->
+        <div class="result-card optimal-card" *ngIf="dashboardData.optimal_config">
+          <div class="card-header">
+            <h3>Optimal Configuration</h3>
+            <span class="card-icon">🎯</span>
+          </div>
+          <div class="card-content">
+            <div class="optimal-settings">
+              <div class="setting">
+                <label>Optimal Tilt:</label>
+                <span>{{ dashboardData.optimal_config.optimal_tilt.toFixed(1) }}°</span>
+              </div>
+              <div class="setting">
+                <label>Optimal Azimuth:</label>
+                <span>{{ dashboardData.optimal_config.optimal_azimuth.toFixed(0) }}°</span>
+              </div>
+              <div class="improvement">
+                <label>Potential Increase:</label>
+                <span class="increase-value">+{{ dashboardData.optimal_config.predicted_increase }}%</span>
+              </div>
+            </div>
+            <p class="optimal-description">{{ getOptimalConfigurationText() }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historical Data Chart -->
+      <div class="chart-section" *ngIf="dashboardData.historical_data.length > 0">
+        <div class="section-header">
+          <h3>Historical Generation Data</h3>
+          <p>Past 30 days solar power generation trend</p>
+        </div>
+        
+        <div class="chart-container">
+          <div class="chart-placeholder">
+            <div class="chart-info">
+              <h4>30-Day Generation History</h4>
+              <div class="chart-stats">
+                <!-- <div class="stat">
+                  <label>Average Daily:</label>
+                  <span>{{ (dashboardData.historical_data.reduce((sum, item) => sum + item.generated_kw, 0) / dashboardData.historical_data.length).toFixed(2) }} kW</span>
+                </div>
+                <div class="stat">
+                  <label>Peak Generation:</label>
+                  <span>{{ Math.max(...dashboardData.historical_data.map(item => item.generated_kw)).toFixed(2) }} kW</span>
+                </div>
+                <div class="stat">
+                  <label>Total Generated:</label>
+                  <span>{{ dashboardData.historical_data.reduce((sum, item) => sum + item.generated_kw, 0).toFixed(2) }} kW</span>
+                </div> -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Section -->
+      <div class="export-section">
+        <div class="section-header">
+          <h3>Export Data</h3>
+          <p>Download your solar prediction data for further analysis</p>
+        </div>
+        
+        <div class="export-actions">
+          <button
+            class="btn btn-export"
+            (click)="exportData('csv')"
+          >
+            Download CSV
+          </button>
+          
+          <button
+            class="btn btn-export"
+            (click)="exportData('json')"
+          >
+            Download JSON
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
