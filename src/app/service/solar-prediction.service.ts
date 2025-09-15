@@ -107,37 +107,6 @@ export class SolarPredictionService {
     };
   }
 
-  generateHistoricalData(latitude: number, longitude: number): any[] {
-    // Generate mock historical data for the past 30 days
-    const data = [];
-    const currentDate = new Date();
-
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date(currentDate);
-      date.setDate(date.getDate() - i);
-
-      // Generate realistic solar data based on season and latitude
-      const dayOfYear = Math.floor(
-        (date.getTime() - new Date(date.getFullYear(), 0, 0).getTime()) /
-          (1000 * 60 * 60 * 24)
-      );
-      const seasonalFactor =
-        0.8 + 0.4 * Math.sin(((dayOfYear - 80) * 2 * Math.PI) / 365);
-      const latitudeFactor = 1 - Math.abs(latitude) / 180;
-
-      const baseGeneration = 4.5 + Math.random() * 2; // 4.5-6.5 kW base
-      const generation = baseGeneration * seasonalFactor * latitudeFactor;
-
-      data.push({
-        date: date.toISOString().split('T')[0],
-        generated_kw: Math.round(generation * 100) / 100,
-        efficiency: Math.round((85 + Math.random() * 10) * 100) / 100,
-      });
-    }
-
-    return data;
-  }
-
   exportData(format: 'csv' | 'json'): Observable<Blob> {
     const currentData = this.dashboardDataSubject.value;
 

@@ -1,4 +1,4 @@
-<div class="solar-dashboard">
+<div class="solar-dashboard" [@fadeInUp]>
   <!-- Header Section -->
   <header class="dashboard-header">
     <div class="header-content">
@@ -6,20 +6,319 @@
         <span class="solar-icon">☀</span>
         Solar Power Prediction Platform
       </h1>
-      <p class="dashboard-subtitle">AI-powered solar energy generation forecasting and optimization</p>
+      <p class="dashboard-subtitle">
+        AI-powered solar energy generation forecasting and optimization
+      </p>
     </div>
   </header>
 
   <!-- Main Content -->
   <div class="dashboard-content">
-    <!-- Input Form Section -->
-    <section class="input-section">
+    <!-- Scatter Plot Visualization Section - NEW SECTION BEFORE INPUT -->
+    <section class="visualization-section" [@slideInLeft]>
+      <div class="section-header">
+        <h2>Zenith Angle Impact Analysis</h2>
+        <p>
+          Relationship between zenith angle and solar power generation with
+          radiation intensity mapping
+        </p>
+      </div>
+
+      <div class="scatter-plot-container">
+        <div class="plot-wrapper">
+          <!-- Chart Title and Correlation Info -->
+          <div class="chart-title-section">
+            <h3 class="chart-title">Zenith Angle vs Generated Power</h3>
+            <div class="correlation-badge">
+              <span class="correlation-label">Correlation:</span>
+              <span class="correlation-value">-0.650</span>
+            </div>
+          </div>
+
+          <!-- Scatter Plot SVG -->
+          <div class="svg-container">
+            <svg
+              class="scatter-plot-svg"
+              viewBox="0 0 800 500"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <!-- Grid Lines -->
+              <defs>
+                <pattern
+                  id="grid"
+                  width="40"
+                  height="25"
+                  patternUnits="userSpaceOnUse"
+                >
+                  <path
+                    d="M 40 0 L 0 0 0 25"
+                    fill="none"
+                    stroke="#e5e7eb"
+                    stroke-width="0.5"
+                    opacity="0.5"
+                  />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#grid)" />
+
+              <!-- Axes -->
+              <line
+                x1="80"
+                y1="50"
+                x2="80"
+                y2="420"
+                stroke="#374151"
+                stroke-width="2"
+              />
+              <line
+                x1="80"
+                y1="420"
+                x2="720"
+                y2="420"
+                stroke="#374151"
+                stroke-width="2"
+              />
+
+              <!-- Y-axis labels (Generated Power) -->
+              <text x="70" y="60" text-anchor="end" class="axis-label">
+                3000
+              </text>
+              <text x="70" y="110" text-anchor="end" class="axis-label">
+                2500
+              </text>
+              <text x="70" y="160" text-anchor="end" class="axis-label">
+                2000
+              </text>
+              <text x="70" y="210" text-anchor="end" class="axis-label">
+                1500
+              </text>
+              <text x="70" y="260" text-anchor="end" class="axis-label">
+                1000
+              </text>
+              <text x="70" y="310" text-anchor="end" class="axis-label">
+                500
+              </text>
+              <text x="70" y="360" text-anchor="end" class="axis-label">0</text>
+              <text x="70" y="410" text-anchor="end" class="axis-label">
+                -500
+              </text>
+              <text x="70" y="430" text-anchor="end" class="axis-label">
+                -1000
+              </text>
+
+              <!-- X-axis labels (Zenith Angle) -->
+              <text x="120" y="440" text-anchor="middle" class="axis-label">
+                20
+              </text>
+              <text x="200" y="440" text-anchor="middle" class="axis-label">
+                40
+              </text>
+              <text x="280" y="440" text-anchor="middle" class="axis-label">
+                60
+              </text>
+              <text x="360" y="440" text-anchor="middle" class="axis-label">
+                80
+              </text>
+              <text x="440" y="440" text-anchor="middle" class="axis-label">
+                100
+              </text>
+              <text x="520" y="440" text-anchor="middle" class="axis-label">
+                120
+              </text>
+
+              <!-- Axis Titles -->
+              <text x="400" y="480" text-anchor="middle" class="axis-title">
+                zenith
+              </text>
+              <text
+                x="25"
+                y="235"
+                text-anchor="middle"
+                class="axis-title"
+                transform="rotate(-90 25 235)"
+              >
+                generated_power_kw
+              </text>
+
+              <!-- Trend Line -->
+              <line
+                x1="100"
+                y1="80"
+                x2="550"
+                y2="400"
+                stroke="#dc2626"
+                stroke-width="3"
+                stroke-dasharray="8,4"
+                opacity="0.8"
+              />
+
+              <!-- Scatter Plot Points with Animation -->
+              <g class="scatter-points">
+                <!-- High radiation points (Yellow) -->
+                <circle
+                  *ngFor="
+                    let point of scatterPlotData.zenithAngles.slice(0, 8);
+                    let i = index
+                  "
+                  [attr.cx]="100 + (point - 10) * 4"
+                  [attr.cy]="
+                    420 - (scatterPlotData.powerValues[i] + 1000) * 0.15
+                  "
+                  [attr.r]="getPointSize(scatterPlotData.radiationValues[i])"
+                  [attr.fill]="
+                    getPointColor(scatterPlotData.radiationValues[i])
+                  "
+                  class="scatter-point high-radiation"
+                  stroke="white"
+                  stroke-width="1"
+                  opacity="0.8"
+                >
+                  <title>
+                    Zenith: {{ point }}°, Power:
+                    {{ scatterPlotData.powerValues[i] }}kW, Radiation:
+                    {{ scatterPlotData.radiationValues[i] }}W/m²
+                  </title>
+                </circle>
+
+                <!-- Medium radiation points (Pink/Purple) -->
+                <circle
+                  *ngFor="
+                    let point of scatterPlotData.zenithAngles.slice(8, 16);
+                    let i = index
+                  "
+                  [attr.cx]="100 + (point - 10) * 4"
+                  [attr.cy]="
+                    420 - (scatterPlotData.powerValues[i + 8] + 1000) * 0.15
+                  "
+                  [attr.r]="
+                    getPointSize(scatterPlotData.radiationValues[i + 8])
+                  "
+                  [attr.fill]="
+                    getPointColor(scatterPlotData.radiationValues[i + 8])
+                  "
+                  class="scatter-point medium-radiation"
+                  stroke="white"
+                  stroke-width="1"
+                  opacity="0.8"
+                >
+                  <title>
+                    Zenith: {{ point }}°, Power:
+                    {{ scatterPlotData.powerValues[i + 8] }}kW, Radiation:
+                    {{ scatterPlotData.radiationValues[i + 8] }}W/m²
+                  </title>
+                </circle>
+
+                <!-- Low radiation points (Blue/Purple) -->
+                <circle
+                  *ngFor="
+                    let point of scatterPlotData.zenithAngles.slice(16);
+                    let i = index
+                  "
+                  [attr.cx]="100 + (point - 10) * 4"
+                  [attr.cy]="
+                    420 - (scatterPlotData.powerValues[i + 16] + 1000) * 0.15
+                  "
+                  [attr.r]="
+                    getPointSize(scatterPlotData.radiationValues[i + 16])
+                  "
+                  [attr.fill]="
+                    getPointColor(scatterPlotData.radiationValues[i + 16])
+                  "
+                  class="scatter-point low-radiation"
+                  stroke="white"
+                  stroke-width="1"
+                  opacity="0.8"
+                >
+                  <title>
+                    Zenith: {{ point }}°, Power:
+                    {{ scatterPlotData.powerValues[i + 16] }}kW, Radiation:
+                    {{ scatterPlotData.radiationValues[i + 16] }}W/m²
+                  </title>
+                </circle>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Legend -->
+          <div class="chart-legend">
+            <h4>shortwave_radiation_backwards_sfc</h4>
+            <div class="legend-items">
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background-color: #1e40af"
+                ></div>
+                <span>0</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background-color: #a78bfa"
+                ></div>
+                <span>200</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background-color: #fb7185"
+                ></div>
+                <span>400</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background-color: #fbbf24"
+                ></div>
+                <span>600</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background-color: #fde047"
+                ></div>
+                <span>800</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Key Insights -->
+          <div class="insights-panel">
+            <h4>Key Insights</h4>
+            <ul class="insights-list">
+              <li>
+                🔻 <strong>Negative Correlation:</strong> Higher zenith angles
+                reduce power generation
+              </li>
+              <li>
+                ☀️ <strong>Optimal Range:</strong> Best performance at zenith
+                angles 10°-40°
+              </li>
+              <li>
+                📊 <strong>Solar Irradiance:</strong> Higher radiation (yellow
+                points) = better efficiency
+              </li>
+              <li>
+                ⚡ <strong>Power Drop:</strong> Performance drops significantly
+                after 80° zenith angle
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Original Input Form Section -->
+    <section class="input-section" [@slideInLeft]>
       <div class="section-header">
         <h2>System Configuration</h2>
         <p>Enter your location and solar panel specifications</p>
       </div>
-      
-      <form [formGroup]="predictionForm" (ngSubmit)="onSubmit()" class="prediction-form">
+
+      <form
+        [formGroup]="predictionForm"
+        (ngSubmit)="onSubmit()"
+        class="prediction-form"
+      >
         <!-- Location Input Group -->
         <div class="form-row">
           <div class="form-group location-group">
@@ -43,7 +342,7 @@
               </button>
             </div>
             <div class="error-message" *ngIf="getFormFieldError('location')">
-              {{ getFormFieldError('location') }}
+              {{ getFormFieldError("location") }}
             </div>
           </div>
         </div>
@@ -62,10 +361,10 @@
               [class.error]="isFormFieldInvalid('latitude')"
             />
             <div class="error-message" *ngIf="getFormFieldError('latitude')">
-              {{ getFormFieldError('latitude') }}
+              {{ getFormFieldError("latitude") }}
             </div>
           </div>
-          
+
           <div class="form-group">
             <label for="longitude">Longitude</label>
             <input
@@ -78,7 +377,7 @@
               [class.error]="isFormFieldInvalid('longitude')"
             />
             <div class="error-message" *ngIf="getFormFieldError('longitude')">
-              {{ getFormFieldError('longitude') }}
+              {{ getFormFieldError("longitude") }}
             </div>
           </div>
         </div>
@@ -95,10 +394,15 @@
               max="1400"
               placeholder="800"
               class="form-input"
-              [class.error]="isFormFieldInvalid('shortwave_radiation_backwards_sfc')"
+              [class.error]="
+                isFormFieldInvalid('shortwave_radiation_backwards_sfc')
+              "
             />
-            <div class="error-message" *ngIf="getFormFieldError('shortwave_radiation_backwards_sfc')">
-              {{ getFormFieldError('shortwave_radiation_backwards_sfc') }}
+            <div
+              class="error-message"
+              *ngIf="getFormFieldError('shortwave_radiation_backwards_sfc')"
+            >
+              {{ getFormFieldError("shortwave_radiation_backwards_sfc") }}
             </div>
           </div>
         </div>
@@ -117,12 +421,14 @@
               class="form-input"
               [class.error]="isFormFieldInvalid('azimuth')"
             />
-            <div class="help-text">0° = North, 90° = East, 180° = South, 270° = West</div>
+            <div class="help-text">
+              0° = North, 90° = East, 180° = South, 270° = West
+            </div>
             <div class="error-message" *ngIf="getFormFieldError('azimuth')">
-              {{ getFormFieldError('azimuth') }}
+              {{ getFormFieldError("azimuth") }}
             </div>
           </div>
-          
+
           <div class="form-group">
             <label for="zenith">Zenith Angle (°)</label>
             <input
@@ -135,9 +441,11 @@
               class="form-input"
               [class.error]="isFormFieldInvalid('zenith')"
             />
-            <div class="help-text">0° = pointing straight up, 90° = horizontal</div>
+            <div class="help-text">
+              0° = pointing straight up, 360° = horizontal
+            </div>
             <div class="error-message" *ngIf="getFormFieldError('zenith')">
-              {{ getFormFieldError('zenith') }}
+              {{ getFormFieldError("zenith") }}
             </div>
           </div>
         </div>
@@ -155,9 +463,14 @@
               class="form-input"
               [class.error]="isFormFieldInvalid('angle_of_incidence')"
             />
-            <div class="help-text">Angle between sun rays and panel surface</div>
-            <div class="error-message" *ngIf="getFormFieldError('angle_of_incidence')">
-              {{ getFormFieldError('angle_of_incidence') }}
+            <div class="help-text">
+              Angle between sun rays and panel surface
+            </div>
+            <div
+              class="error-message"
+              *ngIf="getFormFieldError('angle_of_incidence')"
+            >
+              {{ getFormFieldError("angle_of_incidence") }}
             </div>
           </div>
         </div>
@@ -170,14 +483,12 @@
             [disabled]="dashboardData.loading"
           >
             <span *ngIf="dashboardData.loading" class="loading-spinner"></span>
-            {{ dashboardData.loading ? 'Predicting...' : 'Generate Prediction' }}
+            {{
+              dashboardData.loading ? "Predicting..." : "Generate Prediction"
+            }}
           </button>
-          
-          <button
-            type="button"
-            class="btn btn-secondary"
-            (click)="resetForm()"
-          >
+
+          <button type="button" class="btn btn-secondary" (click)="resetForm()">
             Reset Form
           </button>
         </div>
@@ -203,7 +514,11 @@
           </div>
           <div class="card-content">
             <div class="prediction-value">
-              {{ dashboardData.current_prediction.predicted_generated_kw.toFixed(2) }}
+              {{
+                dashboardData.current_prediction.predicted_generated_kw.toFixed(
+                  2
+                )
+              }}
               <span class="unit">kW</span>
             </div>
             <p class="prediction-description">{{ getPredictionSummary() }}</p>
@@ -220,18 +535,29 @@
             <div class="location-info">
               <div class="coordinate">
                 <label>Latitude:</label>
-                <span>{{ dashboardData.current_prediction.latitude.toFixed(4) }}°</span>
+                <span
+                  >{{
+                    dashboardData.current_prediction.latitude.toFixed(4)
+                  }}°</span
+                >
               </div>
               <div class="coordinate">
                 <label>Longitude:</label>
-                <span>{{ dashboardData.current_prediction.longitude.toFixed(4) }}°</span>
+                <span
+                  >{{
+                    dashboardData.current_prediction.longitude.toFixed(4)
+                  }}°</span
+                >
               </div>
             </div>
           </div>
         </div>
 
         <!-- Optimal Configuration -->
-        <div class="result-card optimal-card" *ngIf="dashboardData.optimal_config">
+        <div
+          class="result-card optimal-card"
+          *ngIf="dashboardData.optimal_config"
+        >
           <div class="card-header">
             <h3>Optimal Configuration</h3>
             <span class="card-icon">🎯</span>
@@ -240,48 +566,30 @@
             <div class="optimal-settings">
               <div class="setting">
                 <label>Optimal Tilt:</label>
-                <span>{{ dashboardData.optimal_config.optimal_tilt.toFixed(1) }}°</span>
+                <span
+                  >{{
+                    dashboardData.optimal_config.optimal_tilt.toFixed(1)
+                  }}°</span
+                >
               </div>
               <div class="setting">
                 <label>Optimal Azimuth:</label>
-                <span>{{ dashboardData.optimal_config.optimal_azimuth.toFixed(0) }}°</span>
+                <span
+                  >{{
+                    dashboardData.optimal_config.optimal_azimuth.toFixed(0)
+                  }}°</span
+                >
               </div>
               <div class="improvement">
                 <label>Potential Increase:</label>
-                <span class="increase-value">+{{ dashboardData.optimal_config.predicted_increase }}%</span>
+                <span class="increase-value"
+                  >+{{ dashboardData.optimal_config.predicted_increase }}%</span
+                >
               </div>
             </div>
-            <p class="optimal-description">{{ getOptimalConfigurationText() }}</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Historical Data Chart -->
-      <div class="chart-section" *ngIf="dashboardData.historical_data.length > 0">
-        <div class="section-header">
-          <h3>Historical Generation Data</h3>
-          <p>Past 30 days solar power generation trend</p>
-        </div>
-        
-        <div class="chart-container">
-          <div class="chart-placeholder">
-            <div class="chart-info">
-              <h4>30-Day Generation History</h4>
-              <div class="chart-stats">
-                <!-- <div class="stat">
-                  <label>Average Daily:</label>
-                  <span>{{ (dashboardData.historical_data.reduce((sum, item) => sum + item.generated_kw, 0) / dashboardData.historical_data.length).toFixed(2) }} kW</span>
-                </div>
-                <div class="stat">
-                  <label>Peak Generation:</label>
-                  <span>{{ Math.max(...dashboardData.historical_data.map(item => item.generated_kw)).toFixed(2) }} kW</span>
-                </div>
-                <div class="stat">
-                  <label>Total Generated:</label>
-                  <span>{{ dashboardData.historical_data.reduce((sum, item) => sum + item.generated_kw, 0).toFixed(2) }} kW</span>
-                </div> -->
-              </div>
-            </div>
+            <p class="optimal-description">
+              {{ getOptimalConfigurationText() }}
+            </p>
           </div>
         </div>
       </div>
@@ -292,19 +600,13 @@
           <h3>Export Data</h3>
           <p>Download your solar prediction data for further analysis</p>
         </div>
-        
+
         <div class="export-actions">
-          <button
-            class="btn btn-export"
-            (click)="exportData('csv')"
-          >
+          <button class="btn btn-export" (click)="exportData('csv')">
             Download CSV
           </button>
-          
-          <button
-            class="btn btn-export"
-            (click)="exportData('json')"
-          >
+
+          <button class="btn btn-export" (click)="exportData('json')">
             Download JSON
           </button>
         </div>
